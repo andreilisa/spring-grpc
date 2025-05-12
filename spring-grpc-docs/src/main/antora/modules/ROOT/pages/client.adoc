@@ -39,7 +39,8 @@ The `@ImportGrpcClients` annotation can be used to control the scan for gRPC stu
 To scan a package you can specify the `basePackages` or `basePackageClasses` attribute.
 Then elsewhere in the application you can `@Autowired` the generated gRPC stubs (the blocking sub-type by default).
 You can change the factory used to create the stubs from `BlockingStubFactory` by setting the `factory` attribute.
-There are standard factories pre-registered for common stub types, and if you want to register additional factories you can use a `GrpcClientFactoryCustomizer` (see below for details).
+There are standard factories pre-registered for common stub types, and if you want to register an additional factory
+you can add one as a `@Bean` (see below).
 
 The default behaviour in a Spring Boot application is equivalent to the following configuration on your `@SpringBootApplication` class:
 
@@ -84,6 +85,9 @@ This feature is useful when you want to have multiple instances of the same stub
 The configuration of the individual client specs is done completely separately from the channel factory configuration.
 This is an important distinction because, although they might be related, the two things happen at very different times in the application lifecycle.
 In particular it is futile to try to inject other beans into `MyClientRegistrar` because the beans are not available yet - its role is to define a set of bean definitions to be created later.
+
+If you have a custom `StubFactory` then add it as a `@Bean` and ensure that the bean definition has the correct concrete type. Then refer to that in the `@ImportGrpcClients` as its factory type. A custom factory type usually has a static method `supports(Class<?> type)` returning a boolean indicating whether the factory can create a stub of the given type. If it does not have the static method, then the factory will be used for all explicit stub types listed (but it cannot be used in a scan). The `supports` method has to be
+static because it is used before the factory is created, to generate bean definitions for the stubs.
 
 == Create a Client Manually
 
